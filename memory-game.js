@@ -17,37 +17,31 @@ const COLORS = [
   "indigo",
   "purple",
 ];
-
 const colors = shuffle(COLORS);
 const maxPoints = COLORS.length / 2; // points to win a game (matched pairs)
+let HIGH_SCORE = localStorage.getItem("highscore") || Infinity; // highscore from localstorage
 let clicks = 0; //tracks for first and second click
 let points = 0; //matched cards
 let totalClicks = 0; //total amount of clicks
-let first;
-let second;
+let first; // first card clicked
+let second; // second card clicked
 
 /** Shuffle array items in-place and return shuffled array. */
-
 function shuffle(items) {
-  // This algorithm does a "perfect shuffle", where there won't be any
-  // statistical bias in the shuffle (many naive attempts to shuffle end up not
-  // be a fair shuffle). This is called the Fisher-Yates shuffle algorithm; if
-  // you're interested, you can learn about it, but it's not important.
-
   for (let i = items.length - 1; i > 0; i--) {
     // generate a random index between 0 and i
     let j = Math.floor(Math.random() * i);
     // swap item at i <-> item at j
     [items[i], items[j]] = [items[j], items[i]];
   }
-
   return items;
 }
 
 /** Hides start container and creates cards to start playing */
 function startGame() {
-  const startContainer = document.getElementById("start");
-  const pointsWrapper = document.getElementById("points-wrapper");
+  const startContainer = document.getElementById("start"),
+    pointsWrapper = document.getElementById("points-wrapper");
+
   startContainer.classList.toggle("hide");
   pointsWrapper.classList.toggle("hide");
   createCards(colors);
@@ -62,6 +56,7 @@ function startGame() {
 
 function createCards(colors) {
   const gameBoard = document.getElementById("game");
+
   for (let color of colors) {
     let div = document.createElement("div");
     div.classList.add(color);
@@ -99,9 +94,10 @@ function handleCardClick(e) {
       updatePoints();
       resetClicks();
       if (points === maxPoints) {
+        setAndGetHighScore();
         setTimeout(() => {
-          showRestart();
-        }, 1000);
+          displayWin();
+        }, FOUND_MATCH_WAIT_MSECS);
       }
 
       // if not a match, flip both cards and reset clicks to 0
@@ -109,7 +105,7 @@ function handleCardClick(e) {
       setTimeout(() => {
         unFlipCard([first, second]);
         resetClicks();
-      }, 1000);
+      }, FOUND_MATCH_WAIT_MSECS);
     }
     // if this is first click, flip this card, total click count +1, and store this card as first card
   } else if (clicks == 0) {
@@ -119,39 +115,76 @@ function handleCardClick(e) {
   }
 }
 
-/** Updates points based on how many cards are matched */
+/** Updates points based on cards matched, resets points if "reset" is passed into arg */
 function updatePoints() {
-  points++;
-  let container = document.querySelector(".points");
+  const container = document.querySelector(".points");
+
+  //if reset is being passed in, reset points to 0
+  arguments[0] === "reset" ? (points = 0) : points++;
   container.innerHTML = points;
 }
 
-/** Updates clicks and shows total clicks in DOM*/
+/** Updates clicks and returns total clicks in DOM*/
 function updateClick() {
-  clicks++;
-  // if points is 6 then game is over and does not track clicks
-  if (points != maxPoints) {
-    totalClicks++;
-    let container = document.querySelector(".clicks");
-    container.innerHTML = totalClicks;
+  const container = document.querySelector(".clicks");
+
+  if (arguments[0] === "reset") {
+    clicks = 0;
+    totalClicks = 0;
+    container.innerHTML = "0";
+  } else {
+    clicks++;
+    // if points is 6 then game is over and does not track clicks
+    if (points != maxPoints) {
+      totalClicks++;
+      container.innerHTML = totalClicks;
+    }
   }
 }
 
-/** Resets click tracker to 0 */
+/** Sets click to 0 */
 function resetClicks() {
   clicks = 0;
 }
 
-// Shows a You Win msg and gives user a button to refresh the game
-function showRestart() {
-  const header = document.querySelector("#header h1");
-  const wrapper = document.querySelector(".wrapper");
-  let restartBtn = document.createElement("button");
+/** Sets header to Win msg, toggles restart btn and highscore */
+function displayWin() {
+  const header = document.querySelector("#header h1"),
+        restartBtn = document.querySelector("#restart"),
+        highScore = document.querySelector("#highscore-wrapper");
+
   header.innerHTML = "You Win!";
-  restartBtn.classList.add("btn");
-  restartBtn.innerHTML = "Restart Game?";
-  restartBtn.addEventListener("click", function () {
-    location.reload();
-  });
-  wrapper.append(restartBtn);
+  [restartBtn, highScore].forEach((element) =>
+    element.classList.toggle("hide")
+  );
+}
+
+/** Restarts game with new board, reset clicks and text */
+function restartGame() {
+  const header = document.querySelector("#header h1"),
+        gameBoard = document.getElementById("game"),
+        restartBtn = document.querySelector("#restart"),
+        highScore = document.querySelector("#highscore-wrapper");
+
+  header.innerHTML = "Memory Game";
+  updatePoints("reset");
+  updateClick("reset");
+  [restartBtn, highScore].forEach((element) =>
+    element.classList.toggle("hide")
+  );
+  gameBoard.innerHTML = "";
+
+  createCards(colors);
+}
+
+/** Saves and shows lowest amount of clicks in localstorage */
+function setAndGetHighScore() {
+  const container = document.querySelector(".highscore");
+
+  if (HIGH_SCORE > totalClicks) {
+    HIGH_SCORE = totalClicks;
+  }
+
+  localStorage.setItem("highscore", HIGH_SCORE);
+  container.innerHTML = localStorage.getItem("highscore");
 }
