@@ -17,7 +17,7 @@ const COLORS = [
   "indigo",
   "purple",
 ];
-const colors = shuffle(COLORS);
+let colors = shuffle(COLORS);
 const maxPoints = COLORS.length / 2; // points to win a game (matched pairs)
 let HIGH_SCORE = localStorage.getItem("highscore") || Infinity; // highscore from localstorage
 let clicks = 0; //tracks for first and second click
@@ -174,6 +174,7 @@ function restartGame() {
   );
   gameBoard.innerHTML = "";
 
+  colors = shuffle(COLORS);
   createCards(colors);
 }
 
