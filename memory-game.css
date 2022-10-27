@@ -7,7 +7,6 @@
 }
 
 body {
-  font-family: "Tonight Friend", sans-serif;
   background-color: var(--bg);
   color: var(--primary);
   text-align: center;
@@ -22,6 +21,7 @@ body {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  font-family: "Tonight Friend", sans-serif;
 }
 
 #header {
@@ -124,4 +124,64 @@ body {
 
 #highscore-wrapper {
   margin-top: 1em;
+}
+
+#leaderboard {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  margin: auto;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+#leaderboard h2 {
+  font-size: 3em;
+  margin-bottom: 1em;
+}
+
+#leaderboard .scores {
+  font-size: 1.5em;
+  line-height: 2;
+  text-align: left;
+  width: 350px;
+}
+
+#leaderboard .scores .score {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+}
+#leaderboard .scores > li.empty-state {
+  display: none;
+  text-align: center;
+}
+
+#leaderboard .scores > li:only-child {
+  display: block;
+}
+
+#btn-leaderboard {
+  position: fixed;
+  top: 0;
+  right: 0;
+  margin: 1.5em;
+}
+
+#close-leaderboard {
+  color: var(--primary);
+  position: absolute;
+  top: 0;
+  right: 0;
+  border: 0;
+  background-color: transparent;
+  margin: 1em;
+  cursor: pointer;
+  font-size: 3em;
 }

@@ -17,9 +17,11 @@ const COLORS = [
   "indigo",
   "purple",
 ];
+
+let LEADERBOARD_SLOTS = 5;
 let colors = shuffle(COLORS);
-const maxPoints = COLORS.length / 2; // points to win a game (matched pairs)
-let HIGH_SCORE = localStorage.getItem("highscore") || Infinity; // highscore from localstorage
+let maxPoints = COLORS.length / 2; // points to win a game (matched pairs)
+let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
 let clicks = 0; //tracks for first and second click
 let points = 0; //matched cards
 let totalClicks = 0; //total amount of clicks
@@ -39,7 +41,7 @@ function shuffle(items) {
 
 /** Hides start container and creates cards to start playing */
 function startGame() {
-  const startContainer = document.getElementById("start"),
+  let startContainer = document.getElementById("start"),
     pointsWrapper = document.getElementById("points-wrapper");
 
   startContainer.classList.toggle("hide");
@@ -55,7 +57,7 @@ function startGame() {
  */
 
 function createCards(colors) {
-  const gameBoard = document.getElementById("game");
+  let gameBoard = document.getElementById("game");
 
   for (let color of colors) {
     let div = document.createElement("div");
@@ -94,7 +96,6 @@ function handleCardClick(e) {
       updatePoints();
       resetClicks();
       if (points === maxPoints) {
-        setAndGetHighScore();
         setTimeout(() => {
           displayWin();
         }, FOUND_MATCH_WAIT_MSECS);
@@ -108,7 +109,7 @@ function handleCardClick(e) {
       }, FOUND_MATCH_WAIT_MSECS);
     }
     // if this is first click, flip this card, total click count +1, and store this card as first card
-  } else if (clicks == 0) {
+  } else if (clicks == 0 && !thisCard.classList.contains("flipped")) {
     flipCard(thisCard);
     updateClick();
     first = thisCard;
@@ -117,7 +118,7 @@ function handleCardClick(e) {
 
 /** Updates points based on cards matched, resets points if "reset" is passed into arg */
 function updatePoints() {
-  const container = document.querySelector(".points");
+  let container = document.querySelector(".points");
 
   //if reset is being passed in, reset points to 0
   arguments[0] === "reset" ? (points = 0) : points++;
@@ -126,7 +127,7 @@ function updatePoints() {
 
 /** Updates clicks and returns total clicks in DOM*/
 function updateClick() {
-  const container = document.querySelector(".clicks");
+  let container = document.querySelector(".clicks");
 
   if (arguments[0] === "reset") {
     clicks = 0;
@@ -149,43 +150,100 @@ function resetClicks() {
 
 /** Sets header to Win msg, toggles restart btn and highscore */
 function displayWin() {
-  const header = document.querySelector("#header h1"),
-        restartBtn = document.querySelector("#restart"),
-        highScore = document.querySelector("#highscore-wrapper");
+  let header = document.querySelector("#header h1"),
+      restartBtn = document.querySelector("#restart"),
+      submitBtn = document.querySelector("#submit-score");
 
   header.innerHTML = "You Win!";
-  [restartBtn, highScore].forEach((element) =>
-    element.classList.toggle("hide")
-  );
+  restartBtn.classList.toggle("hide");
+
+  if (scoreIsEligible() || leaderboard.length < LEADERBOARD_SLOTS) {
+    submitBtn.classList.toggle("hide");
+  }
 }
 
 /** Restarts game with new board, reset clicks and text */
 function restartGame() {
-  const header = document.querySelector("#header h1"),
-        gameBoard = document.getElementById("game"),
-        restartBtn = document.querySelector("#restart"),
-        highScore = document.querySelector("#highscore-wrapper");
+  let header = document.querySelector("#header h1"),
+      gameBoard = document.getElementById("game"),
+      restartBtn = document.querySelector("#restart");
 
   header.innerHTML = "Memory Game";
   updatePoints("reset");
   updateClick("reset");
-  [restartBtn, highScore].forEach((element) =>
-    element.classList.toggle("hide")
-  );
+  restartBtn.classList.toggle("hide");
   gameBoard.innerHTML = "";
 
   colors = shuffle(COLORS);
   createCards(colors);
 }
 
-/** Saves and shows lowest amount of clicks in localstorage */
-function setAndGetHighScore() {
-  const container = document.querySelector(".highscore");
+/** Sort leaderboard to ascending order */
+function sortLeaderboard(leaderboard) {
+  let sorted = [];
+  for (let item of leaderboard) {
+    sorted.push([item[0], item[1]]);
+  }
+  sorted.sort(function (a, b) {
+    return a[1] - b[1];
+  });
 
-  if (HIGH_SCORE > totalClicks) {
-    HIGH_SCORE = totalClicks;
+  return sorted;
+}
+
+/** Saves score to localstorage leaderboard */
+function scoreIsEligible() {
+  let currentScores = leaderboard.map((entry) => entry[1]);
+
+  let newHighScore = function (score) {
+    return score > totalClicks;
+  };
+
+  return currentScores.some(newHighScore);
+}
+
+/** Checks if there are empty slots in leaderboard or if current points is lower than ones recorded on list.
+ * If true, name and points are saved to local storage and DOM is updated to reflect that */
+function submitScore() {
+  let submitBtn = document.querySelector("#submit-score"),
+      newScore = [prompt("Enter your name") || "Anonymous", totalClicks || 0],
+      scoreEligible = scoreIsEligible();
+      leaderboard = sortLeaderboard(leaderboard);
+
+  if (leaderboard.length < LEADERBOARD_SLOTS) {
+    leaderboard.push(newScore);
+    localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
+
+  } else if (scoreEligible) {
+    leaderboard.pop();
+    leaderboard.push(newScore);
+    localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
   }
 
-  localStorage.setItem("highscore", HIGH_SCORE);
-  container.innerHTML = localStorage.getItem("highscore");
+  submitBtn.classList.toggle("hide");
+  openLeaderboard();
+}
+
+/** Appends new list item per entry in leaderboard, toggles hide class on leaderboard container */
+function openLeaderboard() {
+  let board = sortLeaderboard(leaderboard),
+      boardContainer = document.querySelector("#leaderboard");
+
+  boardContainer.classList.toggle("hide");
+
+  board.forEach(function (item) {
+    let li = document.createElement("li");
+    let scoreList = document.querySelector("#leaderboard .scores");
+    li.innerHTML = `<span class="score"><span>${item[0]} </span> <span>${item[1]}</span></span>`;
+    scoreList.append(li);
+  });
+}
+
+/** Removes list items in leaderboard, toggles hide class on leaderboard container */
+function closeLeaderboard() {
+  let boardContainer = document.querySelector("#leaderboard"),
+      scoreList = document.querySelector("#leaderboard .scores");
+
+  boardContainer.classList.toggle("hide");
+  scoreList.innerHTML = "";
 }
