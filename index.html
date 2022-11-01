@@ -1,31 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Memory Game! | Diane Nguyen</title>
-    <link rel="icon" type="image/x-icon" href="./assets/back.png">
-    <link rel="stylesheet" href="./memory-game.css" />
-  </head>
 
-  <body>
-    <div class="wrapper">
-      <div id="header">
-        <h1>Memory Game</h1>
-        <h2 id="points-wrapper" class="hide"><span class="points">0</span> matched in <span class="clicks">0</span>
-          clicks!</h2>
-      </div>
+<head>
+  <meta charset="UTF-8" />
+  <title>Memory Game! | Diane Nguyen</title>
+  <link rel="icon" type="image/x-icon" href="./assets/back.png">
+  <link rel="stylesheet" href="./memory-game.css" />
+</head>
 
-      <div id="start">
-        <p>Let's put your memory to the test. How many clicks will it take for you to match all the cards?</p>
-        <button class="btn" onclick="startGame()"> start</button>
-      </div>
-      <div id="game"></div>
-      <button id="restart" class="btn hide" onclick="restartGame()">Try Again?</button>
-      <div id="highscore-wrapper" class="hide">
-        <p>Highscore: 6 matches in <span class="highscore"></span> clicks.</p>
-      </div>
+<body>
+  <div class="wrapper">
+    <div id="header">
+      <h1>Memory Game</h1>
+      <h2 id="points-wrapper" class="hide"><span class="points">0</span> matched in <span class="clicks">0</span>
+        clicks!</h2>
     </div>
 
-    <script src="./memory-game.js"></script>
-  </body>
+    <div id="start">
+      <p>Let's put your memory to the test. How many clicks will it take for you to match all the cards?</p>
+      <button class="btn" onclick="startGame()"> start</button>
+    </div>
+    <div id="game"></div>
+    <button id="restart" class="btn hide" onclick="restartGame()">Try Again?</button>
+    <button id="submit-score" class="btn hide" onclick="submitScore()">Submit Score</button>
+    <button class="btn" id="btn-leaderboard" onclick="openLeaderboard()"> Leaderboard</button>
+
+    <div id="leaderboard" class="hide">
+      <h2>Top 5 Leaderboard</h2>
+      <button id="close-leaderboard" onclick="closeLeaderboard()">X</button>
+      <ol class="scores">
+        <li class="empty-state">No scores recorded yet!</li>
+      </ol>
+    </div>
+  </div>
+
+  <script src="./memory-game.js"></script>
+</body>
+
 </html>
