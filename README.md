@@ -2,4 +2,4 @@
 
 Memory card game created with HTML, CSS, and vanilla JS.
 
-[View Live](https://dianguyen95.github.io/memory-game/)
+[View Live](https:///dia-nguyen.github.io/memory-game/)
